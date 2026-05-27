@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4" id="stats"></div>
+<div class="mt-6 grid gap-6 xl:grid-cols-[1.4fr_.8fr]">
+  <section class="panel"><h2 class="panel-title">Risk Distribution</h2><canvas id="riskChart" height="130"></canvas></section>
+  <section class="panel"><h2 class="panel-title">AI Insights</h2><div id="insights" class="space-y-3 text-sm text-slate-300"></div></section>
+</div>
+<section class="panel mt-6"><h2 class="panel-title">Latest Predictions</h2><div class="overflow-x-auto"><table class="table" id="latestTable"></table></div></section>
+{% endblock %}
+{% block scripts %}
+<script>
+fetch('/api/dashboard/summary/').then(r=>r.json()).then(data=>{
+  const items=[['Total Customers',data.total_customers],['Churn Rate',data.churn_rate+'%'],['High Risk',data.high_risk_customers],['Predictions',data.total_predictions]];
+  stats.innerHTML=items.map(([k,v])=>`<div class="stat-card"><p>${k}</p><strong>${v}</strong></div>`).join('');
+  new Chart(riskChart,{type:'doughnut',data:{labels:['Low','Medium','High'],datasets:[{data:[data.risk_distribution.low,data.risk_distribution.medium,data.risk_distribution.high],backgroundColor:['#22c55e','#f59e0b','#ef4444']}]},options:{plugins:{legend:{labels:{color:'#cbd5e1'}}}}});
+  insights.innerHTML=['Prioritize high-risk customers with month-to-month contracts.','Use plan right-sizing for high monthly charge customers.','Track churn probability movement after retention actions.'].map(x=>`<div class="rounded-lg border border-white/10 bg-white/5 p-3">${x}</div>`).join('');
+  latestTable.innerHTML='<tr><th>Risk</th><th>Probability</th><th>Model</th><th>Created</th></tr>'+data.latest_predictions.map(p=>`<tr><td>${p.risk_level}</td><td>${(p.churn_probability*100).toFixed(1)}%</td><td>${p.model_name}</td><td>${new Date(p.created_at).toLocaleString()}</td></tr>`).join('');
+});
+</script>
+{% endblock %}
+

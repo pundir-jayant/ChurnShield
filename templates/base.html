@@ -1,0 +1,52 @@
+{% load static %}
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ChurnAI Retention Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="min-h-full bg-slate-950 text-slate-100">
+  <div class="flex min-h-screen">
+    <aside class="hidden w-72 border-r border-white/10 bg-slate-950/90 px-5 py-6 lg:block">
+      <div class="mb-8 flex items-center gap-3">
+        <div class="grid h-11 w-11 place-items-center rounded-lg bg-cyan-400 text-slate-950 font-black">AI</div>
+        <div>
+          <p class="text-lg font-semibold">ChurnAI</p>
+          <p class="text-xs text-slate-400">Retention intelligence</p>
+        </div>
+      </div>
+      <nav class="space-y-2">
+        <a class="nav-link" href="/"><i data-lucide="layout-dashboard"></i>Dashboard</a>
+        <a class="nav-link" href="/datasets/"><i data-lucide="upload-cloud"></i>Datasets</a>
+        <a class="nav-link" href="/predict/"><i data-lucide="sparkles"></i>Predict</a>
+        <a class="nav-link" href="/analytics/"><i data-lucide="bar-chart-3"></i>Analytics</a>
+        <a class="nav-link" href="/admin/"><i data-lucide="shield"></i>Admin</a>
+      </nav>
+    </aside>
+    <main class="flex-1">
+      <header class="sticky top-0 z-10 border-b border-white/10 bg-slate-950/80 px-5 py-4 backdrop-blur">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-xl font-semibold">{% block page_title %}Dashboard{% endblock %}</h1>
+            <p class="text-sm text-slate-400">{% block page_subtitle %}Explainable churn prevention command center{% endblock %}</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button id="themeToggle" class="icon-btn" title="Toggle theme"><i data-lucide="sun-moon"></i></button>
+            <a href="/logout/" class="rounded-lg border border-white/10 px-4 py-2 text-sm text-slate-300 hover:bg-white/10">Logout</a>
+          </div>
+        </div>
+      </header>
+      <section class="p-5 lg:p-8">{% block content %}{% endblock %}</section>
+    </main>
+  </div>
+  <script src="{% static 'js/app.js' %}"></script>
+  <script>lucide.createIcons()</script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
+

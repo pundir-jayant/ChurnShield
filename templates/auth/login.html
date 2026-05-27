@@ -1,0 +1,28 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login | ChurnAI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="grid min-h-screen place-items-center bg-slate-950 px-4 text-slate-100">
+  <form method="post" class="w-full max-w-md rounded-lg border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur">
+    {% csrf_token %}
+    <div class="mb-7">
+      <p class="text-sm uppercase tracking-widest text-cyan-300">ChurnAI Retention Studio</p>
+      <h1 class="mt-2 text-3xl font-bold">Sign in</h1>
+      <p class="mt-2 text-sm text-slate-400">Access the AI dashboard and prediction APIs.</p>
+    </div>
+    {{ form.non_field_errors }}
+    <label class="label">Username</label>
+    <input name="username" class="input" required>
+    <label class="label mt-4">Password</label>
+    <input name="password" type="password" class="input" required>
+    <button class="mt-6 w-full rounded-lg bg-cyan-400 px-4 py-3 font-semibold text-slate-950 hover:bg-cyan-300">Login</button>
+    <p class="mt-5 text-center text-sm text-slate-400">New user? <a class="font-semibold text-cyan-300" href="/register/">Create an account</a></p>
+  </form>
+</body>
+</html>

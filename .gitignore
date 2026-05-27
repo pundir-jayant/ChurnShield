@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.env
+db.sqlite3
+media/
+staticfiles/
+ml_models/*.joblib
+ml_models/metadata.json
+.DS_Store
+

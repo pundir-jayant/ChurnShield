@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block page_title %}Model Analytics{% endblock %}
+{% block content %}
+<section class="panel"><h2 class="panel-title">Model Comparison</h2><canvas id="metricChart" height="110"></canvas></section>
+<section class="panel mt-6"><h2 class="panel-title">Metric Table</h2><table class="table" id="metricTable"></table></section>
+{% endblock %}
+{% block scripts %}
+<script>
+fetch('/api/analytics/model-metrics/').then(r=>r.json()).then(data=>{const rows=data.results||data;metricTable.innerHTML='<tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1</th><th>ROC-AUC</th></tr>'+rows.map(m=>`<tr><td>${m.model_name}${m.is_best?' [best]':''}</td><td>${m.accuracy.toFixed(3)}</td><td>${m.precision.toFixed(3)}</td><td>${m.recall.toFixed(3)}</td><td>${m.f1_score.toFixed(3)}</td><td>${m.roc_auc.toFixed(3)}</td></tr>`).join('');new Chart(metricChart,{type:'bar',data:{labels:rows.map(x=>x.model_name),datasets:[{label:'ROC-AUC',data:rows.map(x=>x.roc_auc),backgroundColor:'#22d3ee'},{label:'F1',data:rows.map(x=>x.f1_score),backgroundColor:'#a78bfa'}]},options:{scales:{x:{ticks:{color:'#cbd5e1'}},y:{ticks:{color:'#cbd5e1'}}},plugins:{legend:{labels:{color:'#cbd5e1'}}}}})})
+</script>
+{% endblock %}

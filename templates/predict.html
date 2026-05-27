@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block page_title %}Real-Time Prediction{% endblock %}
+{% block content %}
+<div class="grid gap-6 xl:grid-cols-[1fr_.9fr]">
+<form id="predictForm" class="panel grid gap-4 md:grid-cols-2">
+  <input name="gender" class="input" value="Female" placeholder="Gender">
+  <input name="senior_citizen" class="input" value="false" placeholder="Senior citizen true/false">
+  <input name="partner" class="input" value="Yes" placeholder="Partner">
+  <input name="dependents" class="input" value="No" placeholder="Dependents">
+  <input name="tenure" class="input" value="8" placeholder="Tenure">
+  <input name="phone_service" class="input" value="Yes" placeholder="Phone Service">
+  <input name="multiple_lines" class="input" value="No" placeholder="Multiple Lines">
+  <input name="internet_service" class="input" value="Fiber optic" placeholder="Internet Service">
+  <input name="online_security" class="input" value="No" placeholder="Online Security">
+  <input name="tech_support" class="input" value="No" placeholder="Tech Support">
+  <input name="contract" class="input" value="Month-to-month" placeholder="Contract">
+  <input name="paperless_billing" class="input" value="Yes" placeholder="Paperless Billing">
+  <input name="payment_method" class="input" value="Electronic check" placeholder="Payment Method">
+  <input name="monthly_charges" class="input" value="88.5" placeholder="Monthly Charges">
+  <input name="total_charges" class="input" value="701.2" placeholder="Total Charges">
+  <button class="primary-btn md:col-span-2">Predict Churn</button>
+</form>
+<section class="panel"><h2 class="panel-title">Prediction Result</h2><div id="result" class="text-slate-300">Submit a customer profile to see risk, explanation, and retention actions.</div></section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+predictForm.onsubmit=async e=>{e.preventDefault();const o=Object.fromEntries(new FormData(predictForm));o.senior_citizen=o.senior_citizen==='true';o.tenure=+o.tenure;o.monthly_charges=+o.monthly_charges;o.total_charges=+o.total_charges;const r=await fetch('/api/predictions/predict/',{method:'POST',headers:authHeaders(),body:JSON.stringify(o)}).then(x=>x.json());const p=r.prediction;result.innerHTML=`<div class="meter"><span style="width:${p.churn_probability*100}%"></span></div><h3 class="mt-4 text-3xl font-bold">${(p.churn_probability*100).toFixed(1)}%</h3><p class="mb-4 uppercase text-sm text-cyan-300">${p.risk_level} risk - ${p.model_name}</p><h4 class="font-semibold">Why</h4>${p.explanation.top_features.map(f=>`<p>${f.feature}: ${f.impact.toFixed(3)}</p>`).join('')}<h4 class="mt-4 font-semibold">Retention Actions</h4>${r.recommendations.map(a=>`<div class="mt-2 rounded-lg bg-white/5 p-3"><b>${a.title}</b><p>${a.rationale}</p></div>`).join('')}`}
+</script>
+{% endblock %}
