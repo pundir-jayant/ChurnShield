@@ -5,7 +5,7 @@ class UploadedDatasetSerializer(serializers.ModelSerializer):
     class Meta:
         model = UploadedDataset
         fields = "__all__"
-        read_only_fields = ["uploaded_by", "row_count", "status", "validation_errors", "preview", "created_at"]
+        read_only_fields = ["uploaded_by", "original_name", "row_count", "status", "validation_errors", "preview", "created_at"]
 
 class PredictionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -29,4 +29,3 @@ class ManualPredictionSerializer(serializers.Serializer):
     payment_method = serializers.CharField()
     monthly_charges = serializers.FloatField(min_value=0)
     total_charges = serializers.FloatField(min_value=0)
-

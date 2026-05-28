@@ -3,19 +3,165 @@
 {% block page_subtitle %}Upload, validate, preview, and batch-score customer CSV files{% endblock %}
 {% block content %}
 <section class="panel">
-  <form id="uploadForm" class="flex flex-col gap-4 md:flex-row md:items-end">
-    <div class="flex-1"><label class="label">Customer CSV</label><input type="file" name="file" accept=".csv" class="input" required></div>
-    <button class="primary-btn" type="submit">Upload Dataset</button>
+  <form id="uploadForm" class="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
+    <div>
+      <label class="label">Customer CSV</label>
+      <input type="file" name="file" accept=".csv" class="input" required>
+    </div>
+    <button class="primary-btn" type="submit">Validate CSV</button>
   </form>
-  <p id="uploadStatus" class="mt-3 text-sm text-slate-400"></p>
+  <div id="uploadStatus" class="mt-4 text-sm text-slate-300"></div>
 </section>
-<section class="panel mt-6"><h2 class="panel-title">Datasets</h2><div id="datasetList" class="space-y-3"></div></section>
+
+<section class="panel mt-6">
+  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <h2 class="panel-title mb-0">Uploaded Datasets</h2>
+    <button class="secondary-btn" type="button" onclick="loadDatasets()">Refresh</button>
+  </div>
+  <div id="datasetList" class="mt-4 space-y-3"></div>
+</section>
+
+<section class="panel mt-6">
+  <h2 class="panel-title">Validation Preview</h2>
+  <div id="previewBox" class="text-sm text-slate-400">Upload a CSV or select Preview from a dataset.</div>
+</section>
+
+<section class="panel mt-6">
+  <h2 class="panel-title">Batch Score Results</h2>
+  <div id="batchBox" class="text-sm text-slate-400">Run Batch Score to see risk distribution and sample scored customers.</div>
+</section>
 {% endblock %}
+
 {% block scripts %}
 <script>
-async function loadDatasets(){const r=await api('/api/datasets/');datasetList.innerHTML=(r.results||r).map(d=>`<div class="list-row"><div><b>${d.original_name}</b><p>${d.row_count} rows - ${d.status}</p></div><button onclick="batch(${d.id})" class="secondary-btn">Batch Predict</button></div>`).join('')}
-uploadForm.onsubmit=async e=>{e.preventDefault();const fd=new FormData(uploadForm);uploadStatus.textContent='Uploading...';await fetch('/api/datasets/',{method:'POST',headers:authHeaders(false),body:fd});uploadStatus.textContent='Dataset uploaded and validated.';loadDatasets()}
-async function batch(id){await fetch(`/api/datasets/${id}/batch_predict/`,{method:'POST',headers:authHeaders()});loadDatasets()}
+let datasetsCache = []
+
+function escapeHtml(value){
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]))
+}
+
+function statusBadge(status){
+  const tone = status === 'validated' ? 'ok' : status === 'predicted' ? 'info' : status === 'failed' ? 'danger' : 'muted'
+  return `<span class="badge badge-${tone}">${escapeHtml(status)}</span>`
+}
+
+function renderPreview(dataset){
+  const rows = dataset.preview || []
+  if(!rows.length){
+    previewBox.innerHTML = `<p>No preview rows available for ${escapeHtml(dataset.original_name)}.</p>`
+    return
+  }
+  const columns = Object.keys(rows[0]).slice(0, 10)
+  const errorHtml = (dataset.validation_errors || []).length
+    ? `<div class="notice notice-danger"><b>Validation errors</b><br>${dataset.validation_errors.map(escapeHtml).join('<br>')}</div>`
+    : `<div class="notice notice-ok">Validation passed. ${dataset.row_count} rows are ready for scoring.</div>`
+  previewBox.innerHTML = `
+    <div class="mb-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      <div><b>${escapeHtml(dataset.original_name)}</b><p class="text-slate-400">${dataset.row_count} rows - ${escapeHtml(dataset.status)}</p></div>
+      ${statusBadge(dataset.status)}
+    </div>
+    ${errorHtml}
+    <div class="mt-4 overflow-x-auto">
+      <table class="table">
+        <thead><tr>${columns.map(c=>`<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>
+        <tbody>${rows.map(row=>`<tr>${columns.map(c=>`<td>${escapeHtml(row[c])}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table>
+    </div>`
+}
+
+function renderDatasets(rows){
+  if(!rows.length){
+    datasetList.innerHTML = '<div class="notice">No datasets uploaded yet.</div>'
+    return
+  }
+  datasetList.innerHTML = rows.map(d => `
+    <div class="list-row dataset-row">
+      <div>
+        <div class="flex flex-wrap items-center gap-2"><b>${escapeHtml(d.original_name)}</b>${statusBadge(d.status)}</div>
+        <p>${d.row_count} rows - uploaded ${new Date(d.created_at).toLocaleString()}</p>
+        ${(d.validation_errors || []).length ? `<p class="text-red-300">${escapeHtml(d.validation_errors[0])}</p>` : ''}
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button class="secondary-btn" type="button" onclick="showPreview(${d.id})">Preview</button>
+        <button class="secondary-btn" type="button" onclick="validateDataset(${d.id})">Re-validate</button>
+        <button class="primary-btn" type="button" onclick="batchScore(${d.id})" ${d.status === 'failed' ? 'disabled' : ''}>Batch Score</button>
+      </div>
+    </div>`).join('')
+}
+
+async function loadDatasets(){
+  datasetList.innerHTML = '<div class="notice">Loading datasets...</div>'
+  try{
+    const response = await api('/api/datasets/')
+    datasetsCache = response.results || response
+    renderDatasets(datasetsCache)
+    if(datasetsCache.length){ renderPreview(datasetsCache[0]) }
+  }catch(error){
+    datasetList.innerHTML = `<div class="notice notice-danger">${escapeHtml(error.message)}</div>`
+  }
+}
+
+function showPreview(id){
+  const dataset = datasetsCache.find(item => item.id === id)
+  if(dataset){ renderPreview(dataset) }
+}
+
+async function validateDataset(id){
+  previewBox.innerHTML = '<div class="notice">Validating dataset...</div>'
+  const response = await fetch(`/api/datasets/${id}/validate/`, {method:'POST', headers:authHeaders()})
+  const data = await response.json()
+  if(!response.ok){
+    previewBox.innerHTML = `<div class="notice notice-danger">${escapeHtml(data.detail || 'Validation failed')}</div>`
+    return
+  }
+  datasetsCache = datasetsCache.map(item => item.id === id ? data : item)
+  renderDatasets(datasetsCache)
+  renderPreview(data)
+}
+
+uploadForm.onsubmit = async event => {
+  event.preventDefault()
+  const formData = new FormData(uploadForm)
+  uploadStatus.innerHTML = '<div class="notice">Uploading and validating CSV...</div>'
+  const response = await fetch('/api/datasets/', {method:'POST', headers:authHeaders(false), body:formData})
+  const data = await response.json()
+  if(!response.ok){
+    uploadStatus.innerHTML = `<div class="notice notice-danger">${escapeHtml(data.detail || 'Upload failed')}</div>`
+    return
+  }
+  uploadStatus.innerHTML = data.status === 'failed'
+    ? `<div class="notice notice-danger">CSV uploaded, but validation failed. Review the preview below.</div>`
+    : `<div class="notice notice-ok">CSV validated successfully. Preview is ready.</div>`
+  uploadForm.reset()
+  await loadDatasets()
+  renderPreview(data)
+}
+
+async function batchScore(id){
+  batchBox.innerHTML = '<div class="notice">Scoring customers. Please wait...</div>'
+  const response = await fetch(`/api/datasets/${id}/batch_predict/`, {method:'POST', headers:authHeaders()})
+  const data = await response.json()
+  if(!response.ok){
+    batchBox.innerHTML = `<div class="notice notice-danger">${escapeHtml(data.detail || 'Batch scoring failed')}<br>${(data.errors || []).map(escapeHtml).join('<br>')}</div>`
+    return
+  }
+  const sample = data.sample_results || []
+  batchBox.innerHTML = `
+    <div class="grid gap-3 md:grid-cols-4">
+      <div class="mini-stat"><p>Scored</p><b>${data.count}</b></div>
+      <div class="mini-stat"><p>High Risk</p><b>${data.high_risk_count}</b></div>
+      <div class="mini-stat"><p>Avg Probability</p><b>${(data.average_churn_probability * 100).toFixed(1)}%</b></div>
+      <div class="mini-stat"><p>Risk Split</p><b>${data.risk_distribution.low}/${data.risk_distribution.medium}/${data.risk_distribution.high}</b></div>
+    </div>
+    <div class="mt-4 overflow-x-auto">
+      <table class="table">
+        <thead><tr><th>ID</th><th>Risk</th><th>Probability</th><th>Model</th></tr></thead>
+        <tbody>${sample.map(row=>`<tr><td>${row.id}</td><td>${escapeHtml(row.risk_level)}</td><td>${(row.churn_probability*100).toFixed(1)}%</td><td>${escapeHtml(row.model_name)}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>`
+  await loadDatasets()
+}
+
 loadDatasets()
 </script>
 {% endblock %}

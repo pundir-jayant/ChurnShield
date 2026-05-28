@@ -10,8 +10,14 @@
 .primary-btn{background:#22d3ee;color:#020617;padding:.75rem 1rem}.secondary-btn{border:1px solid rgba(255,255,255,.12);padding:.55rem .8rem;color:#e2e8f0}.icon-btn{border:1px solid rgba(255,255,255,.12);padding:.65rem;color:#e2e8f0}
 .table{width:100%;font-size:.9rem}.table th{text-align:left;color:#94a3b8;font-weight:600}.table th,.table td{border-bottom:1px solid rgba(255,255,255,.08);padding:.75rem}
 .list-row{display:flex;align-items:center;justify-content:space-between;border:1px solid rgba(255,255,255,.1);border-radius:.5rem;padding:1rem}.list-row p{color:#94a3b8;font-size:.85rem}
+.dataset-row{gap:1rem;align-items:flex-start}.dataset-row>div:first-child{min-width:0}.dataset-row b{word-break:break-word}
+.badge{display:inline-flex;align-items:center;border-radius:999px;padding:.2rem .55rem;font-size:.75rem;font-weight:700;text-transform:uppercase}
+.badge-ok{background:rgba(34,197,94,.16);color:#86efac}.badge-info{background:rgba(34,211,238,.16);color:#67e8f9}.badge-danger{background:rgba(239,68,68,.16);color:#fca5a5}.badge-muted{background:rgba(148,163,184,.16);color:#cbd5e1}
+.notice{border:1px solid rgba(255,255,255,.1);border-radius:.5rem;background:rgba(255,255,255,.05);padding:.85rem;color:#cbd5e1}
+.notice-ok{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.08);color:#bbf7d0}.notice-danger{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.08);color:#fecaca}
+.mini-stat{border:1px solid rgba(255,255,255,.1);border-radius:.5rem;background:rgba(255,255,255,.05);padding:1rem}.mini-stat p{font-size:.78rem;color:#94a3b8}.mini-stat b{display:block;margin-top:.25rem;font-size:1.45rem}
 .meter{height:16px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden}.meter span{display:block;height:100%;background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444)}
 [data-theme="light"] body{background:#f8fafc;color:#0f172a}
-[data-theme="light"] .panel,[data-theme="light"] .stat-card,[data-theme="light"] .list-row{background:white;border-color:#e2e8f0;box-shadow:0 10px 30px rgba(15,23,42,.08)}
+[data-theme="light"] .panel,[data-theme="light"] .stat-card,[data-theme="light"] .list-row,[data-theme="light"] .notice,[data-theme="light"] .mini-stat{background:white;border-color:#e2e8f0;box-shadow:0 10px 30px rgba(15,23,42,.08)}
 [data-theme="light"] .panel-title,[data-theme="light"] .stat-card strong{color:#0f172a}
 [data-theme="light"] .input{background:white;color:#0f172a;border-color:#cbd5e1}

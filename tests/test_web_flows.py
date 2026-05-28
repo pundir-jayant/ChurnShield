@@ -1,7 +1,10 @@
 import pytest
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
+from pathlib import Path
 
+from backend.customers.models import Customer
 from backend.prediction.models import Prediction
 from backend.recommendations.models import Recommendation
 
@@ -53,3 +56,39 @@ def test_manual_prediction_persists_recommendations(client, settings, tmp_path):
     assert Prediction.objects.count() == 1
     assert Recommendation.objects.filter(prediction=Prediction.objects.first()).exists()
 
+@pytest.mark.django_db
+def test_dataset_upload_preview_and_batch_score(client, settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path / "media"
+    settings.ML_ARTIFACT_DIR = tmp_path / "models"
+    user = User.objects.create_user(username="dataset_user", password="StrongPass123")
+    client.force_login(user)
+    content = Path("datasets/sample_churn.csv").read_bytes()
+    upload = SimpleUploadedFile("sample_churn.csv", content, content_type="text/csv")
+
+    create_response = client.post("/api/datasets/", {"file": upload})
+    assert create_response.status_code == 201
+    created = create_response.json()
+    assert created["status"] == "validated"
+    assert created["preview"]
+
+    batch_response = client.post(f"/api/datasets/{created['id']}/batch_predict/")
+    assert batch_response.status_code == 200
+    batch = batch_response.json()
+    assert batch["count"] == 20
+    assert sum(batch["risk_distribution"].values()) == 20
+    assert Customer.objects.count() == 20
+    assert Prediction.objects.filter(dataset_id=created["id"]).count() == 20
+
+@pytest.mark.django_db
+def test_dataset_upload_returns_preview_even_when_validation_fails(client, settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path / "media"
+    user = User.objects.create_user(username="bad_dataset_user", password="StrongPass123")
+    client.force_login(user)
+    upload = SimpleUploadedFile("bad.csv", b"customerID,tenure\nC-1,4\n", content_type="text/csv")
+
+    response = client.post("/api/datasets/", {"file": upload})
+    assert response.status_code == 201
+    data = response.json()
+    assert data["status"] == "failed"
+    assert data["preview"]
+    assert "Missing required columns" in data["validation_errors"][0]
