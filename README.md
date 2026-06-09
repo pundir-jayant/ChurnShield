@@ -1,7 +1,7 @@
 
 # ChurnShield — Explainable AI-Based Customer Churn Prevention and Retention System
 
-Industry-style final-year BTech CSE AIML project for churn prediction, explainability, retention recommendations, analytics, and reporting.
+Industry-style project for churn prediction, explainability, retention recommendations, analytics, and reporting.
 
 ## Stack
 - Django 5, Django REST Framework, Simple JWT
