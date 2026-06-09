@@ -1,5 +1,5 @@
-# ChurnShield
-# Explainable AI-Based Customer Churn Prevention and Retention System
+
+# ChurnShield —— Explainable AI-Based Customer Churn Prevention and Retention System
 
 Industry-style final-year BTech CSE AIML project for churn prediction, explainability, retention recommendations, analytics, and reporting.
 
