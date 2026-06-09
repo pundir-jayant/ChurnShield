@@ -48,7 +48,6 @@ templates/                SaaS dashboard UI
 static/                   CSS/JS assets
 datasets/                 Sample churn dataset
 docs/                     API, deployment, testing docs
-research/                 Final report and IEEE paper draft
 deployment/               Docker/Nginx/Gunicorn assets
 ```
 
